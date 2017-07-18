@@ -72,3 +72,5 @@ target/
 
 #local settings
 */settings_local.py
+
+.pypirc
