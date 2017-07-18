@@ -19,7 +19,7 @@ More on https://github.com/davidvicenteranz/drf-api-dump/
 
 setup(
     name='drf-api-dump',
-    version='0.1.2',
+    version='0.1.3',
     author='David Vicente Ranz',
     author_email='dvicente74@gmail.com',
 
