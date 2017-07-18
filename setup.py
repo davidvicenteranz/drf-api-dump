@@ -35,6 +35,7 @@ setup(
     install_requires=[
         'djangorestframework'
     ],
+    keywords='django dumpdata development',
     classifiers=(
         'Framework :: Django',
         'Development Status :: 4 - Beta',
