@@ -1,4 +1,4 @@
-#drf-api-dump
+# drf-api-dump
 This django app is intended for **dump data from apps or models via HTTP**.
 Basically exposes dumdata command via http for custom needs. (just for superusers)
 
@@ -10,21 +10,21 @@ Basically exposes dumdata command via http for custom needs. (just for superuser
 - Django (Developed under v1.11)
 - Django Rest Framework (Developed under v3.4.3) 
 
-##Installation
+## Installation
 via pip from command line:
 ```shell
-$ pip install -e git+[url_to_git_repo]
+$ pip install drf-api-dump
 ```
 or include into requirements file as:
 ```
 Django==1.11
 ...
--e git+[url_to_git_repo]
+drf-api-dump
 ...
 ```
 
-##Configuration
-####urls.py:
+## Configuration
+#### urls.py:
 Simply add a route like this in urlpatterns
 ```python
 urlpatterns = [
@@ -32,7 +32,7 @@ urlpatterns = [
     url(r'^your-route-to-drf-dump-api/', include('drf_api_dump.urls', namespace='drf-api-dump'))
 ]
 ```
-####settings.py
+#### settings.py
 Add this lines to your settings.py if you need some customizations
 ```python
 # If you want to limit available apps and models to dump use DRF_API_DUMP_AVAILABLE
