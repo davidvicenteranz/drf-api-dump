@@ -3,7 +3,12 @@
 from __future__ import unicode_literals
 
 import json
-from io import StringIO
+
+try:
+    from StringIO import StringIO ## for Python 2
+except ImportError:
+    from io import StringIO ## for Python 3
+
 from collections import OrderedDict
 
 from django.conf import settings
