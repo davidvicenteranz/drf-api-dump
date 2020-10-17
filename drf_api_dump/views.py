@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 import json
-from StringIO import StringIO
+from io import StringIO
 from collections import OrderedDict
 
 from django.conf import settings

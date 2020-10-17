@@ -7,8 +7,8 @@ Basically exposes dumdata command via http for custom needs. (just for superuser
 - Ability to include or exclude any specific app or model
 
 **Requirements**:
-- Django (Developed under v1.11)
-- Django Rest Framework (Developed under v3.4.3) 
+- Django (Developed under 3.1.1)
+- Django Rest Framework (Developed under v3.11.1) 
 
 ## Installation
 via pip from command line:
@@ -17,7 +17,7 @@ $ pip install drf-api-dump
 ```
 or include into requirements file as:
 ```
-Django==1.11
+Django<=3.1.1
 ...
 drf-api-dump
 ...
@@ -29,7 +29,7 @@ Simply add a route like this in urlpatterns
 ```python
 urlpatterns = [
     ...
-    url(r'^your-route-to-drf-dump-api/', include('drf_api_dump.urls', namespace='drf-api-dump'))
+    url(r'^your-route-to-drf-dump-api/', include('drf_api_dump.urls', 'drf-api-dump'), namespace='drf-api-dump'))
 ]
 ```
 #### settings.py
