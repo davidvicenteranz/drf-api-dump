@@ -11,15 +11,15 @@ Features:
     - Ability to include or exclude any specific app or model
 
 Requirements:
-    - Django (Developed under v1.11)
-    - Django Rest Framework (Developed under v3.4.3)
+    - Django (Developed under v3.1.1)
+    - Django Rest Framework (Developed under v3.11.1)
 
 More on https://github.com/davidvicenteranz/drf-api-dump/
 """
 
 setup(
     name='drf-api-dump',
-    version='0.1.3',
+    version='0.1.4',
     author='David Vicente Ranz',
     author_email='dvicente74@gmail.com',
 
@@ -46,6 +46,7 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ),
 )
