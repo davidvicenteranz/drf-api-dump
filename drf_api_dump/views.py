@@ -1,28 +1,38 @@
+# Create your views here.
 # -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
-
 import json
-
-try:
-    from StringIO import StringIO ## for Python 2
-except ImportError:
-    from io import StringIO ## for Python 3
-
+from io import StringIO
 from collections import OrderedDict
 
+from django.apps import apps
 from django.conf import settings
 from django.http import JsonResponse
-from rest_framework import views
-from rest_framework.permissions import BasePermission
-from rest_framework.response import Response
 from django.core.management import call_command
-from rest_framework.reverse import reverse
-from django.apps import apps
 
-DRF_API_DUMP_EXCLUDES = getattr(settings, 'DRF_API_DUMP_EXCLUDES', [])
-DRF_API_DUMP_AVAILABLES = getattr(settings, 'DRF_API_DUMP_AVAILABLES', [])
-DRF_API_VIEW_TITLE = str(getattr(settings, 'DRF_API_VIEW_TITLE', 'DrfDumpApi'))
+from rest_framework import views
+from rest_framework.reverse import reverse
+from rest_framework.response import Response
+from rest_framework.permissions import BasePermission
+
+DRF_API_DUMP_EXCLUDES = getattr(settings, "DRF_API_DUMP_EXCLUDES", [])
+DRF_API_DUMP_AVAILABLES = getattr(settings, "DRF_API_DUMP_AVAILABLES", [])
+DRF_API_VIEW_TITLE = str(getattr(settings, "DRF_API_VIEW_TITLE", "DrfDumpApi"))
+
+
+def split_app_model(app_model):
+    model = None
+    if "." in app_model:
+        app = app_model.split(".")[0]
+        model = app_model.split(".")[1]
+    else:
+        app = app_model
+
+    try:
+        app = apps.get_app_config(app)
+    except LookupError:
+        app = None
+
+    return app, model
 
 
 class IsSuperUser(BasePermission):
@@ -38,24 +48,9 @@ class DrfDumpApiView(views.APIView):
     """
     Generates and serves fixturized data from apps and/or models.
     """
+
     _request = None
     permission_classes = (IsSuperUser,)
-
-    def split_app_model(self, app_model):
-        app = None
-        model = None
-        if '.' in app_model:
-            app = app_model.split('.')[0]
-            model = app_model.split('.')[1]
-        else:
-            app = app_model
-
-        try:
-            app = apps.get_app_config(app)
-        except:
-            app = None
-
-        return app, model
 
     @property
     def all_apps_and_models_dict(self):
@@ -68,12 +63,11 @@ class DrfDumpApiView(views.APIView):
 
     @property
     def available_to_dump(self):
-        app_dict = self.all_apps_and_models_dict
         if len(DRF_API_DUMP_AVAILABLES) > 0:
             # Remove from app dict
             available_dict = OrderedDict()
             for available in DRF_API_DUMP_AVAILABLES:
-                app, model = self.split_app_model(available)
+                app, model = split_app_model(available)
                 if not app:
                     continue
                 app = app.label
@@ -90,7 +84,7 @@ class DrfDumpApiView(views.APIView):
         if len(DRF_API_DUMP_EXCLUDES) > 0:
             # make restrictions
             for unavailable in DRF_API_DUMP_EXCLUDES:
-                app, model = self.split_app_model(unavailable)
+                app, model = split_app_model(unavailable)
                 app = app.label
                 if model:
                     if model in available_dict[app]:
@@ -106,9 +100,9 @@ class DrfDumpApiView(views.APIView):
         for app in self.available_to_dump:
             if len(self.available_to_dump[app]) > 0:
                 for model in self.available_to_dump[app]:
-                    availables.append(str('%s.%s' % (app, model)))
+                    availables.append(str("%s.%s" % (app, model)))
             else:
-                availables.append(str('%s' % app))
+                availables.append(str("%s" % app))
         return availables
 
     @property
@@ -120,25 +114,33 @@ class DrfDumpApiView(views.APIView):
                 continue
             for model in self.all_apps_and_models_dict[app]:
                 if model not in self.available_to_dump[app]:
-                    exclude_list.append(str('%s.%s' % (app, model)))
+                    exclude_list.append(str("%s.%s" % (app, model)))
 
         return exclude_list
 
     def root_content(self, request):
         permissions = self.available_to_dump
-        output = OrderedDict(__ALL__=reverse('drf-api-dump:dump-app-view', request=request, kwargs={"pk": '__ALL__'}))
+        output = OrderedDict(
+            __ALL__=reverse("drf-api-dump:dump-app-view", request=request, kwargs={"pk": "__ALL__"})
+        )
 
         for app in permissions:
-            if not app in output:
+            if app not in output:
                 output[app] = OrderedDict(
-                    __ALL__=reverse('drf-api-dump:dump-app-view', request=request, kwargs={"pk": app}))
-            if app == '__ALL__':
+                    __ALL__=reverse(
+                        "drf-api-dump:dump-app-view", request=request, kwargs={"pk": app}
+                    )
+                )
+            if app == "__ALL__":
                 continue
 
             for model in permissions[app]:
-                if model != '__ALL__':
-                    output[app][model] = reverse('drf-api-dump:dump-app-view', request=request,
-                                                 kwargs={"pk": "%s.%s" % (app, model)})
+                if model != "__ALL__":
+                    output[app][model] = reverse(
+                        "drf-api-dump:dump-app-view",
+                        request=request,
+                        kwargs={"pk": "%s.%s" % (app, model)},
+                    )
 
         return output
 
@@ -148,34 +150,35 @@ class DrfDumpApiView(views.APIView):
     def get(self, request, pk=None):
         if not pk:
             return Response(self.root_content(request))
-        else:
-            if pk == '__ALL__':
-                return self.dump_view(all=True)
-            return self.dump_view(pk)
+        if pk == "__ALL__":
+            return self.dump_view(all_data=True)
+        return self.dump_view(pk)
 
-    def dump_view(self, app=None, all=False):
-        if not app and not all:
+    def dump_view(self, app=None, all_data=False):
+        if not app and not all_data:
             return JsonResponse({"error": "An app is needed"})
-        else:
-            dump_arg = app
+
+        dump_arg = app
 
         if app in self.exclude_list:
-            return JsonResponse({"details":"404 Not found"}, status=404)
+            return JsonResponse({"details": "404 Not found"}, status=404)
 
         exception = None
         output = StringIO()
 
-        if all:
+        if all_data:
             try:
-                call_command('dumpdata', use_base_manager=True, exclude=self.exclude_list, stdout=output)
-            except Exception as e:
+                call_command(
+                    "dumpdata", use_base_manager=True, exclude=self.exclude_list, stdout=output
+                )
+            except KeyError as e:
                 exception = e
         else:
             try:
-                call_command('dumpdata', dump_arg, exclude=self.exclude_list, stdout=output)
-            except Exception as e:
+                call_command("dumpdata", dump_arg, exclude=self.exclude_list, stdout=output)
+            except KeyError as e:
                 exception = e
 
         if exception:
-            return JsonResponse({'error': str(e)})
+            return JsonResponse({"error": str(exception)})
         return Response(json.loads(output.getvalue()))
